@@ -1,0 +1,13 @@
+[package]
+name = "deck_of_cards_simulator_backend"
+version = "0.1.0"
+authors = ["Brooks Patton <brooks@brookzerker.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "3.3.2"
+actix-session = "0.4.1"
+serde = "1.0.126"
+futures-util = "0.3.15"
