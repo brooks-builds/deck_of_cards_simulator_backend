@@ -1,5 +1,6 @@
 use rocket::async_stream::yielder::Sender;
-use rocket::request::Request;
+use rocket::http::hyper::header::ACCESS_CONTROL_ALLOW_ORIGIN;
+use rocket::http::Header;
 use rocket::response;
 use rocket::response::content::Html;
 use rocket::response::stream::EventStream;
@@ -32,9 +33,11 @@ struct Data {
     id: Option<u32>,
 }
 
-#[derive(Serialize, Responder)]
+#[derive(Responder)]
+#[response(status = 201, content_type = "json")]
 struct JsonResponse {
     data: String,
+    header: Header<'static>,
 }
 
 #[derive(Debug, Serialize)]
@@ -59,7 +62,17 @@ fn create_game(data: Form<Data>, game_state: &State<GameState>) -> Json<JsonResp
     };
     Json(JsonResponse {
         data: serde_json::to_string(&game).unwrap(),
+        header: Header::new("Access-Control-Allow-Origin", "*"),
     })
+}
+
+#[derive(Responder)]
+#[response(status = 200)]
+struct OptionResponse(Header<'static>);
+
+#[options("/games")]
+fn create_game_options() -> OptionResponse {
+    OptionResponse(Header::new("Access-Control-Allow-Origin", "*"));
 }
 
 #[get("/stream")]
@@ -69,8 +82,18 @@ async fn stream() -> io::Result<ReaderStream![TcpStream]> {
     Ok(ReaderStream::one(stream))
 }
 
-#[get("/infinite_events")]
-async fn infinite_events(game_state: &State<GameState>) -> EventStream![] {
+#[derive(Debug, PartialEq)]
+struct PlayerId {
+    id: u32,
+}
+
+#[get("/infinite_events/<player_name>/<room_name>")]
+async fn infinite_events(
+    game_state: &State<GameState>,
+    player_name: &str,
+    room_name: &str,
+) -> EventStream![] {
+    dbg!(player_name, room_name);
     let is_dirty = game_state.is_dirty.clone();
     EventStream! {
         let mut interval = time::interval(Duration::from_secs(1));
