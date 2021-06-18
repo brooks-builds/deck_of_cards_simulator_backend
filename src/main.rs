@@ -1,9 +1,10 @@
 use rocket::async_stream::yielder::Sender;
+use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::hyper::header::ACCESS_CONTROL_ALLOW_ORIGIN;
 use rocket::http::Header;
-use rocket::response;
 use rocket::response::content::Html;
 use rocket::response::stream::EventStream;
+use rocket::response::{self, status};
 use rocket::tokio::time::{self, Duration};
 use rocket::Shutdown;
 use rocket::State;
@@ -66,15 +67,6 @@ fn create_game(data: Form<Data>, game_state: &State<GameState>) -> Json<JsonResp
     })
 }
 
-#[derive(Responder)]
-#[response(status = 200)]
-struct OptionResponse(Header<'static>);
-
-#[options("/games")]
-fn create_game_options() -> OptionResponse {
-    OptionResponse(Header::new("Access-Control-Allow-Origin", "*"));
-}
-
 #[get("/stream")]
 async fn stream() -> io::Result<ReaderStream![TcpStream]> {
     let address = SocketAddr::from(([127, 0, 0, 1], 9999));
@@ -114,11 +106,44 @@ struct GameState {
     is_dirty: Arc<Mutex<bool>>,
 }
 
+pub struct Cors;
+
+#[rocket::async_trait]
+impl Fairing for Cors {
+    fn info(&self) -> Info {
+        Info {
+            name: "Add Cors headers to responses",
+            kind: Kind::Response,
+        }
+    }
+
+    async fn on_response<'r>(&self, request: &'r rocket::Request<'_>, response: &mut Response<'r>) {
+        dbg!(request);
+        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        response.set_header(Header::new(
+            "Access-Control-Allow-Methods",
+            "POST, GET, PATCH, OPTIONS",
+        ));
+        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+    }
+}
+
+#[options("/games")]
+async fn games_options() -> status::Accepted<()> {
+    status::Accepted(None)
+}
+
 #[launch]
 fn rocket() -> _ {
+    let cors = Cors;
     rocket::build()
         .manage(GameState {
             is_dirty: Arc::new(Mutex::new(false)),
         })
-        .mount("/", routes![index, create_game, stream, infinite_events])
+        .attach(cors)
+        .mount(
+            "/",
+            routes![index, games_options, create_game, stream, infinite_events],
+        )
 }
