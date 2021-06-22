@@ -20,6 +20,7 @@ mod command;
 mod message;
 
 type Sender = UnboundedSender<Message>;
+//
 type PeerMap = Arc<Mutex<HashMap<SocketAddr, Sender>>>;
 
 async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, address: SocketAddr) {
