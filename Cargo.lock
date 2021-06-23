@@ -248,6 +248,7 @@ dependencies = [
  "async-tungstenite",
  "eyre",
  "futures",
+ "rand",
  "serde",
  "serde_json",
 ]
