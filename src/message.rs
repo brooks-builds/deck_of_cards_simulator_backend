@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IncommingMessage {
     pub command: Command,
+    pub room_code: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -36,12 +36,14 @@ async fn handle_connection(
             match incomming_message.command {
                 command::Command::CreateGame => {
                     let mut state = main_state.lock().unwrap();
-                    let code = state.create_room();
+                    let code = state.create_room(address).unwrap();
                     let message = OutgoingMessage::new(Some(code));
                     state.send_message_to_address(&address, &message).unwrap();
                 }
+                command::Command::JoinRoom => {
+                    dbg!(incomming_message);
+                }
             }
-            dbg!(message);
             // let peers = peer_map.lock().unwrap();
             // let broadcast_recipients = peers
             //     .iter()

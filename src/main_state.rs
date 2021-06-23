@@ -5,7 +5,7 @@ use std::{
 };
 
 use async_tungstenite::tungstenite::Message;
-use eyre::Result;
+use eyre::{bail, Result};
 use futures::channel::mpsc::UnboundedSender;
 use rand::Rng;
 
@@ -16,6 +16,7 @@ pub type WrappedMainState = Arc<Mutex<MainState>>;
 #[derive(Debug, Default)]
 pub struct MainState {
     clients: HashMap<SocketAddr, UnboundedSender<Message>>,
+    rooms: HashMap<String, Vec<SocketAddr>>,
 }
 
 impl MainState {
@@ -24,10 +25,14 @@ impl MainState {
         Arc::new(Mutex::new(main_state))
     }
 
-    pub fn create_room(&mut self) -> String {
+    pub fn create_room(&mut self, address: SocketAddr) -> Result<String> {
         let mut rng = rand::thread_rng();
-        let code = rng.gen_range(1_000..10_000);
-        code.to_string()
+        let code = rng.gen_range(1_000..10_000).to_string();
+        if self.rooms.contains_key(&code) {
+            bail!("room already exists");
+        }
+        self.rooms.insert(code.clone(), vec![address]);
+        Ok(code)
     }
 
     pub fn add_client(&mut self, address: SocketAddr, sender: UnboundedSender<Message>) {
