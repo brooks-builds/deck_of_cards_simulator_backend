@@ -49,4 +49,13 @@ impl MainState {
         }
         Ok(())
     }
+
+    pub fn join_room(&mut self, code: &str, address: SocketAddr) -> Result<()> {
+        if let Some(room) = self.rooms.get_mut(code) {
+            room.push(address);
+            return Ok(());
+        }
+
+        bail!("room with code {} doesn't exist", code);
+    }
 }

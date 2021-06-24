@@ -37,11 +37,26 @@ async fn handle_connection(
                 command::Command::CreateGame => {
                     let mut state = main_state.lock().unwrap();
                     let code = state.create_room(address).unwrap();
-                    let message = OutgoingMessage::new(Some(code));
+                    let mut message = OutgoingMessage::default();
+                    message.set_room_code(code);
+                    message
+                        .set_message("Game created, invite people with the room code above".into());
                     state.send_message_to_address(&address, &message).unwrap();
                 }
                 command::Command::JoinRoom => {
-                    dbg!(incomming_message);
+                    let mut state = main_state.lock().unwrap();
+                    let mut message = OutgoingMessage::default();
+                    if let Some(code) = &incomming_message.room_code {
+                        if let Err(error) = state.join_room(code, address) {
+                            message.set_error(error.to_string());
+                        } else {
+                            message.set_room_code(code.clone());
+                            message.set_message("Room joined!".into());
+                        }
+                    } else {
+                        message.set_error("Please set a room code".into());
+                    }
+                    state.send_message_to_address(&address, &message).unwrap();
                 }
             }
             // let peers = peer_map.lock().unwrap();
