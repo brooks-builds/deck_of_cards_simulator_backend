@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct IncommingMessage {
     pub command: Command,
     pub room_code: Option<String>,
+    pub message: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -12,6 +13,7 @@ pub struct OutgoingMessage {
     room_code: Option<String>,
     error: Option<String>,
     message: Option<String>,
+    chat_message: Option<String>,
 }
 
 impl OutgoingMessage {
@@ -25,5 +27,9 @@ impl OutgoingMessage {
 
     pub fn set_message(&mut self, message: String) {
         self.message = Some(message);
+    }
+
+    pub fn set_chat_message(&mut self, message: String) {
+        self.chat_message = Some(message);
     }
 }

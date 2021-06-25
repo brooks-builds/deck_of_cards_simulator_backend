@@ -58,4 +58,19 @@ impl MainState {
 
         bail!("room with code {} doesn't exist", code);
     }
+
+    pub fn broadcast_to_room(&mut self, code: &str, message: &OutgoingMessage) -> Result<()> {
+        let senders = if let Some(senders) = self.rooms.get(code) {
+            senders
+        } else {
+            bail!("Room {} not found", code);
+        };
+
+        for address in senders {
+            let sender = self.clients.get_mut(address).unwrap();
+            let stringified_message = Message::Text(serde_json::to_string(message)?);
+            sender.unbounded_send(stringified_message)?;
+        }
+        Ok(())
+    }
 }

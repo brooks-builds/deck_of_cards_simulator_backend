@@ -58,6 +58,16 @@ async fn handle_connection(
                     }
                     state.send_message_to_address(&address, &message).unwrap();
                 }
+                command::Command::Chat => {
+                    let mut state = main_state.lock().unwrap();
+                    let mut outgoing_message = OutgoingMessage::default();
+                    let room_code = &incomming_message.room_code.unwrap();
+                    outgoing_message.set_room_code(room_code.clone());
+                    outgoing_message.set_chat_message(incomming_message.message.unwrap());
+                    state
+                        .broadcast_to_room(room_code, &outgoing_message)
+                        .unwrap();
+                }
             }
             // let peers = peer_map.lock().unwrap();
             // let broadcast_recipients = peers
