@@ -14,6 +14,7 @@ pub struct OutgoingMessage {
     error: Option<String>,
     message: Option<String>,
     chat_message: Option<String>,
+    draw_deck_size: Option<u8>,
 }
 
 impl OutgoingMessage {
@@ -31,5 +32,9 @@ impl OutgoingMessage {
 
     pub fn set_chat_message(&mut self, message: String) {
         self.chat_message = Some(message);
+    }
+
+    pub fn set_draw_deck_size(&mut self, size: u8) {
+        self.draw_deck_size = Some(size);
     }
 }

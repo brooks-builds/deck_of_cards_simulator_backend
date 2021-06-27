@@ -9,14 +9,14 @@ use eyre::{bail, Result};
 use futures::channel::mpsc::UnboundedSender;
 use rand::Rng;
 
-use crate::message::OutgoingMessage;
+use crate::{message::OutgoingMessage, room::Room};
 
 pub type WrappedMainState = Arc<Mutex<MainState>>;
 
 #[derive(Debug, Default)]
 pub struct MainState {
     clients: HashMap<SocketAddr, UnboundedSender<Message>>,
-    rooms: HashMap<String, Vec<SocketAddr>>,
+    rooms: HashMap<String, Room>,
 }
 
 impl MainState {
@@ -31,7 +31,7 @@ impl MainState {
         if self.rooms.contains_key(&code) {
             bail!("room already exists");
         }
-        self.rooms.insert(code.clone(), vec![address]);
+        self.rooms.insert(code.clone(), Room::new(address));
         Ok(code)
     }
 
@@ -52,7 +52,7 @@ impl MainState {
 
     pub fn join_room(&mut self, code: &str, address: SocketAddr) -> Result<()> {
         if let Some(room) = self.rooms.get_mut(code) {
-            room.push(address);
+            room.join(address);
             return Ok(());
         }
 
@@ -60,17 +60,21 @@ impl MainState {
     }
 
     pub fn broadcast_to_room(&mut self, code: &str, message: &OutgoingMessage) -> Result<()> {
-        let senders = if let Some(senders) = self.rooms.get(code) {
-            senders
+        let room = if let Some(room) = self.rooms.get(code) {
+            room
         } else {
             bail!("Room {} not found", code);
         };
 
-        for address in senders {
+        for address in room.get_addresses() {
             let sender = self.clients.get_mut(address).unwrap();
             let stringified_message = Message::Text(serde_json::to_string(message)?);
             sender.unbounded_send(stringified_message)?;
         }
         Ok(())
+    }
+
+    pub fn get_draw_deck_size(&self, code: &str) -> Option<u8> {
+        self.rooms.get(code).map(|room| room.get_draw_deck_size())
     }
 }

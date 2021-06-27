@@ -15,6 +15,7 @@ use crate::{
 mod command;
 mod main_state;
 mod message;
+mod room;
 
 async fn handle_connection(
     main_state: WrappedMainState,
@@ -38,6 +39,9 @@ async fn handle_connection(
                     let mut state = main_state.lock().unwrap();
                     let code = state.create_room(address).unwrap();
                     let mut message = OutgoingMessage::default();
+                    if let Some(draw_deck_size) = state.get_draw_deck_size(&code) {
+                        message.set_draw_deck_size(draw_deck_size);
+                    }
                     message.set_room_code(code);
                     message
                         .set_message("Game created, invite people with the room code above".into());
