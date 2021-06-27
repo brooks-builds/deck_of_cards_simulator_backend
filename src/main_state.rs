@@ -50,10 +50,10 @@ impl MainState {
         Ok(())
     }
 
-    pub fn join_room(&mut self, code: &str, address: SocketAddr) -> Result<()> {
+    pub fn join_room(&mut self, code: &str, address: SocketAddr) -> Result<u8> {
         if let Some(room) = self.rooms.get_mut(code) {
             room.join(address);
-            return Ok(());
+            return Ok(room.get_draw_deck_size());
         }
 
         bail!("room with code {} doesn't exist", code);
@@ -76,5 +76,9 @@ impl MainState {
 
     pub fn get_draw_deck_size(&self, code: &str) -> Option<u8> {
         self.rooms.get(code).map(|room| room.get_draw_deck_size())
+    }
+
+    pub fn handle_draw_card(&mut self, code: &str, address: SocketAddr) {
+        self.rooms.get_mut(code).map(|room| room.draw(address));
     }
 }
