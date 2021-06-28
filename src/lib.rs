@@ -47,6 +47,7 @@ async fn handle_connection(
                     message.set_room_code(code);
                     message
                         .set_message("Game created, invite people with the room code above".into());
+                    message.set_command(incomming_message.command);
                     state.send_message_to_address(&address, &message).unwrap();
                 }
                 command::Command::JoinRoom => {
