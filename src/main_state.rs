@@ -6,10 +6,10 @@ use std::{
 
 use async_tungstenite::tungstenite::Message;
 use eyre::{bail, Result};
-use futures::channel::mpsc::UnboundedSender;
+use futures::{channel::mpsc::UnboundedSender, SinkExt};
 use rand::Rng;
 
-use crate::{message::OutgoingMessage, room::Room};
+use crate::{card::Card, message::OutgoingMessage, room::Room};
 
 pub type WrappedMainState = Arc<Mutex<MainState>>;
 
@@ -78,7 +78,36 @@ impl MainState {
         self.rooms.get(code).map(|room| room.get_draw_deck_size())
     }
 
-    pub fn handle_draw_card(&mut self, code: &str, address: SocketAddr) {
-        self.rooms.get_mut(code).map(|room| room.draw(address));
+    pub fn handle_draw_card(&mut self, code: &str, address: SocketAddr) -> Option<Card> {
+        if let Some(drawn_card) = self.rooms.get_mut(code).map(|room| room.draw(address)) {
+            drawn_card
+        } else {
+            None
+        }
+    }
+
+    pub fn broadcast_to_everyone_else(
+        &mut self,
+        room_code: &str,
+        address: &SocketAddr,
+        message: &OutgoingMessage,
+    ) -> Result<()> {
+        let room = if let Some(room) = self.rooms.get(room_code) {
+            room
+        } else {
+            bail!("Room {} not found", room_code);
+        };
+
+        for room_address in room.get_addresses() {
+            if room_address == address {
+                continue;
+            };
+
+            let sender = self.clients.get_mut(room_address).unwrap();
+            let message_text = Message::Text(serde_json::to_string(message)?);
+            sender.unbounded_send(message_text)?;
+        }
+
+        Ok(())
     }
 }

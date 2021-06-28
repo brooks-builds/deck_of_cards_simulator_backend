@@ -1,4 +1,4 @@
-use crate::command::Command;
+use crate::{card::Card, command::Command};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -8,13 +8,15 @@ pub struct IncommingMessage {
     pub message: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct OutgoingMessage {
     room_code: Option<String>,
     error: Option<String>,
     message: Option<String>,
     chat_message: Option<String>,
     draw_deck_size: Option<u8>,
+    card: Option<Card>,
+    command: Command,
 }
 
 impl OutgoingMessage {
@@ -36,5 +38,17 @@ impl OutgoingMessage {
 
     pub fn set_draw_deck_size(&mut self, size: u8) {
         self.draw_deck_size = Some(size);
+    }
+
+    pub fn set_card(&mut self, card: Card) {
+        self.card = Some(card);
+    }
+
+    pub fn remove_card(&mut self) {
+        self.card = None;
+    }
+
+    pub fn set_command(&mut self, command: Command) {
+        self.command = command;
     }
 }

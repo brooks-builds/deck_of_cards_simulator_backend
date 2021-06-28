@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 
-use crate::deck::Deck;
+use crate::{card::Card, deck::Deck};
 
 #[derive(Debug)]
 pub struct Room {
@@ -28,7 +28,7 @@ impl Room {
         self.deck.get_draw_deck_size()
     }
 
-    pub fn draw(&mut self, address: SocketAddr) {
-        self.deck.draw(address);
+    pub fn draw(&mut self, address: SocketAddr) -> Option<Card> {
+        self.deck.draw(address)
     }
 }

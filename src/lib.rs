@@ -90,14 +90,23 @@ async fn handle_connection(
                     let mut outgoing_message = OutgoingMessage::default();
                     let room_code = &incomming_message.room_code.unwrap();
                     outgoing_message.set_room_code(room_code.clone());
-                    state.handle_draw_card(room_code, address);
+                    outgoing_message.set_command(incomming_message.command);
+                    if let Some(drawn_card) = state.handle_draw_card(room_code, address) {
+                        outgoing_message.set_card(drawn_card);
+                    }
                     if let Some(deck_size) = state.get_draw_deck_size(room_code) {
                         outgoing_message.set_draw_deck_size(deck_size);
                     }
                     state
-                        .broadcast_to_room(room_code, &outgoing_message)
+                        .send_message_to_address(&address, &outgoing_message)
+                        .unwrap();
+                    let mut broadcast_message = outgoing_message.clone();
+                    broadcast_message.remove_card();
+                    state
+                        .broadcast_to_everyone_else(room_code, &address, &broadcast_message)
                         .unwrap();
                 }
+                command::Command::None => {}
             }
             // let peers = peer_map.lock().unwrap();
             // let broadcast_recipients = peers

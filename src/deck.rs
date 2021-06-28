@@ -15,7 +15,13 @@ impl Deck {
             crate::card::Value::Ace,
             Owner::Draw,
         );
+        let ace_of_hearts = Card::new(
+            crate::card::Suite::Heart,
+            crate::card::Value::Ace,
+            Owner::Draw,
+        );
         cards.push(card);
+        cards.push(ace_of_hearts);
 
         Self { cards }
     }
@@ -27,7 +33,7 @@ impl Deck {
             .count() as u8
     }
 
-    pub fn draw(&mut self, address: SocketAddr) {
+    pub fn draw(&mut self, address: SocketAddr) -> Option<Card> {
         let owner = Owner::Player(address);
         if let Some(card) = self
             .cards
@@ -35,6 +41,9 @@ impl Deck {
             .find(|card| card.is_owned_by(Owner::Draw))
         {
             card.change_owner(owner);
+            Some(card.clone())
+        } else {
+            None
         }
     }
 }

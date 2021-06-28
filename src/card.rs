@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct Card {
     pub suite: Suite,
     pub value: Value,
@@ -25,7 +26,7 @@ impl Card {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone)]
 pub enum Suite {
     Club,
     Heart,
@@ -33,7 +34,7 @@ pub enum Suite {
     Spade,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone)]
 pub enum Value {
     Ace,
     Two,
@@ -50,7 +51,7 @@ pub enum Value {
     King,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub enum Owner {
     Draw,
     Discard,
