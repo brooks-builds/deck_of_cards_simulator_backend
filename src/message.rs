@@ -2,7 +2,7 @@ use crate::{card::Card, command::Command};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct IncommingMessage {
+pub struct IncomingMessage {
     pub command: Command,
     pub room_code: Option<String>,
     pub message: Option<String>,

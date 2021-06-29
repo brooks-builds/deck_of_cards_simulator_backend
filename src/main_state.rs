@@ -6,7 +6,7 @@ use std::{
 
 use async_tungstenite::tungstenite::Message;
 use eyre::{bail, Result};
-use futures::{channel::mpsc::UnboundedSender, SinkExt};
+use futures::channel::mpsc::UnboundedSender;
 use rand::Rng;
 
 use crate::{card::Card, message::OutgoingMessage, room::Room};

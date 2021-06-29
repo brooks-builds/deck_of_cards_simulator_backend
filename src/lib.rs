@@ -9,7 +9,7 @@ use std::net::SocketAddr;
 
 use crate::{
     main_state::MainState,
-    message::{IncommingMessage, OutgoingMessage},
+    message::{IncomingMessage, OutgoingMessage},
 };
 
 mod card;
@@ -34,9 +34,9 @@ async fn handle_connection(
         .try_filter(|message| future::ready(!message.is_close()))
         .try_for_each(|message| {
             // received message and now we can handle it
-            let incomming_message: IncommingMessage =
+            let incoming_message: IncomingMessage =
                 serde_json::from_str(message.to_text().unwrap()).unwrap();
-            match incomming_message.command {
+            match incoming_message.command {
                 command::Command::CreateGame => {
                     let mut state = main_state.lock().unwrap();
                     let code = state.create_room(address).unwrap();
@@ -47,13 +47,13 @@ async fn handle_connection(
                     message.set_room_code(code);
                     message
                         .set_message("Game created, invite people with the room code above".into());
-                    message.set_command(incomming_message.command);
+                    message.set_command(incoming_message.command);
                     state.send_message_to_address(&address, &message).unwrap();
                 }
                 command::Command::JoinRoom => {
                     let mut state = main_state.lock().unwrap();
                     let mut message = OutgoingMessage::default();
-                    if let Some(code) = &incomming_message.room_code {
+                    if let Some(code) = &incoming_message.room_code {
                         // if let Err(error) = state.join_room(code, address) {
                         //     message.set_error(error.to_string());
                         // } else {
@@ -76,12 +76,13 @@ async fn handle_connection(
                 command::Command::Chat => {
                     let mut state = main_state.lock().unwrap();
                     let mut outgoing_message = OutgoingMessage::default();
-                    let room_code = &incomming_message.room_code.unwrap();
+                    let room_code = &incoming_message.room_code.unwrap();
                     outgoing_message.set_room_code(room_code.clone());
-                    outgoing_message.set_chat_message(incomming_message.message.unwrap());
+                    outgoing_message.set_chat_message(incoming_message.message.unwrap());
                     if let Some(draw_deck_size) = state.get_draw_deck_size(room_code) {
                         outgoing_message.set_draw_deck_size(draw_deck_size);
                     }
+                    outgoing_message.set_command(incoming_message.command);
                     state
                         .broadcast_to_room(room_code, &outgoing_message)
                         .unwrap();
@@ -89,9 +90,9 @@ async fn handle_connection(
                 command::Command::DrawCard => {
                     let mut state = main_state.lock().unwrap();
                     let mut outgoing_message = OutgoingMessage::default();
-                    let room_code = &incomming_message.room_code.unwrap();
+                    let room_code = &incoming_message.room_code.unwrap();
                     outgoing_message.set_room_code(room_code.clone());
-                    outgoing_message.set_command(incomming_message.command);
+                    outgoing_message.set_command(incoming_message.command);
                     if let Some(drawn_card) = state.handle_draw_card(room_code, address) {
                         outgoing_message.set_card(drawn_card);
                     }
@@ -101,7 +102,7 @@ async fn handle_connection(
                     state
                         .send_message_to_address(&address, &outgoing_message)
                         .unwrap();
-                    let mut broadcast_message = outgoing_message.clone();
+                    let mut broadcast_message = outgoing_message;
                     broadcast_message.remove_card();
                     state
                         .broadcast_to_everyone_else(room_code, &address, &broadcast_message)
