@@ -7,10 +7,7 @@ use futures::{channel::mpsc::unbounded, future, pin_mut, StreamExt, TryStreamExt
 use main_state::WrappedMainState;
 use std::net::SocketAddr;
 
-use crate::{
-    main_state::MainState,
-    message::{IncomingMessage, OutgoingMessage},
-};
+use crate::{main_state::MainState, message::IncomingMessage};
 
 mod card;
 mod command;
@@ -36,77 +33,44 @@ async fn handle_connection(
             // received message and now we can handle it
             let incoming_message: IncomingMessage =
                 serde_json::from_str(message.to_text().unwrap()).unwrap();
+            let mut state = main_state.lock().unwrap();
             match incoming_message.command {
-                command::Command::CreateGame => {
-                    let mut state = main_state.lock().unwrap();
-                    let code = state.create_room(address).unwrap();
-                    let mut message = OutgoingMessage::default();
-                    if let Some(draw_deck_size) = state.get_draw_deck_size(&code) {
-                        message.set_draw_deck_size(draw_deck_size);
-                    }
-                    message.set_room_code(code);
-                    message
-                        .set_message("Game created, invite people with the room code above".into());
-                    message.set_command(incoming_message.command);
-                    state.send_message_to_address(&address, &message).unwrap();
-                }
-                command::Command::JoinRoom => {
-                    let mut state = main_state.lock().unwrap();
-                    let mut message = OutgoingMessage::default();
-                    if let Some(code) = &incoming_message.room_code {
-                        // if let Err(error) = state.join_room(code, address) {
-                        //     message.set_error(error.to_string());
-                        // } else {
-                        //     message.set_room_code(code.clone());
-                        //     message.set_message("Room joined!".into());
-                        // }
-                        match state.join_room(code, address) {
-                            Ok(draw_deck_size) => {
-                                message.set_room_code(code.clone());
-                                message.set_message("Room joined!".into());
-                                message.set_draw_deck_size(draw_deck_size);
-                            }
-                            Err(error) => message.set_error(error.to_string()),
-                        }
-                    } else {
-                        message.set_error("Please set a room code".into());
-                    }
-                    state.send_message_to_address(&address, &message).unwrap();
-                }
+                command::Command::CreateGame => state.create_game(address).unwrap(),
+                command::Command::JoinRoom => state.join_room(incoming_message, address).unwrap(),
                 command::Command::Chat => {
-                    let mut state = main_state.lock().unwrap();
-                    let mut outgoing_message = OutgoingMessage::default();
-                    let room_code = &incoming_message.room_code.unwrap();
-                    outgoing_message.set_room_code(room_code.clone());
-                    outgoing_message.set_chat_message(incoming_message.message.unwrap());
-                    if let Some(draw_deck_size) = state.get_draw_deck_size(room_code) {
-                        outgoing_message.set_draw_deck_size(draw_deck_size);
-                    }
-                    outgoing_message.set_command(incoming_message.command);
-                    state
-                        .broadcast_to_room(room_code, &outgoing_message)
-                        .unwrap();
+                    // let mut state = main_state.lock().unwrap();
+                    // let mut outgoing_message = OutgoingMessage::default();
+                    // let room_code = &incoming_message.room_code.unwrap();
+                    // outgoing_message.set_room_code(room_code.clone());
+                    // outgoing_message.set_chat_message(incoming_message.message.unwrap());
+                    // if let Some(draw_deck_size) = state.get_draw_deck_size(room_code) {
+                    //     outgoing_message.set_draw_deck_size(draw_deck_size);
+                    // }
+                    // outgoing_message.set_command(incoming_message.command);
+                    // state
+                    //     .broadcast_to_room(room_code, &outgoing_message)
+                    //     .unwrap();
                 }
                 command::Command::DrawCard => {
-                    let mut state = main_state.lock().unwrap();
-                    let mut outgoing_message = OutgoingMessage::default();
-                    let room_code = &incoming_message.room_code.unwrap();
-                    outgoing_message.set_room_code(room_code.clone());
-                    outgoing_message.set_command(incoming_message.command);
-                    if let Some(drawn_card) = state.handle_draw_card(room_code, address) {
-                        outgoing_message.set_card(drawn_card);
-                    }
-                    if let Some(deck_size) = state.get_draw_deck_size(room_code) {
-                        outgoing_message.set_draw_deck_size(deck_size);
-                    }
-                    state
-                        .send_message_to_address(&address, &outgoing_message)
-                        .unwrap();
-                    let mut broadcast_message = outgoing_message;
-                    broadcast_message.remove_card();
-                    state
-                        .broadcast_to_everyone_else(room_code, &address, &broadcast_message)
-                        .unwrap();
+                    //     let mut state = main_state.lock().unwrap();
+                    //     let mut outgoing_message = OutgoingMessage::default();
+                    //     let room_code = &incoming_message.room_code.unwrap();
+                    //     outgoing_message.set_room_code(room_code.clone());
+                    //     outgoing_message.set_command(incoming_message.command);
+                    //     if let Some(drawn_card) = state.handle_draw_card(room_code, address) {
+                    //         outgoing_message.set_card(drawn_card);
+                    //     }
+                    //     if let Some(deck_size) = state.get_draw_deck_size(room_code) {
+                    //         outgoing_message.set_draw_deck_size(deck_size);
+                    //     }
+                    //     state
+                    //         .send_message_to_address(&address, &outgoing_message)
+                    //         .unwrap();
+                    //     let mut broadcast_message = outgoing_message;
+                    //     broadcast_message.remove_card();
+                    //     state
+                    //         .broadcast_to_everyone_else(room_code, &address, &broadcast_message)
+                    //         .unwrap();
                 }
                 command::Command::None => {}
             }

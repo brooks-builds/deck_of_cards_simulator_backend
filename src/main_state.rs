@@ -9,7 +9,11 @@ use eyre::{bail, Result};
 use futures::channel::mpsc::UnboundedSender;
 use rand::Rng;
 
-use crate::{card::Card, message::OutgoingMessage, room::Room};
+use crate::{
+    card::Card,
+    message::{IncomingMessage, OutgoingMessage},
+    room::Room,
+};
 
 pub type WrappedMainState = Arc<Mutex<MainState>>;
 
@@ -25,7 +29,7 @@ impl MainState {
         Arc::new(Mutex::new(main_state))
     }
 
-    pub fn create_room(&mut self, address: SocketAddr) -> Result<String> {
+    fn create_room(&mut self, address: SocketAddr) -> Result<String> {
         let mut rng = rand::thread_rng();
         let code = rng.gen_range(1_000..10_000).to_string();
         if self.rooms.contains_key(&code) {
@@ -50,13 +54,26 @@ impl MainState {
         Ok(())
     }
 
-    pub fn join_room(&mut self, code: &str, address: SocketAddr) -> Result<u8> {
-        if let Some(room) = self.rooms.get_mut(code) {
+    pub fn join_room(&mut self, event: IncomingMessage, address: SocketAddr) -> Result<()> {
+        let room_code = if let Some(room_code) = event.room_code {
+            room_code
+        } else {
+            bail!("Room code not provided");
+        };
+        if let Some(room) = self.rooms.get_mut(&room_code) {
             room.join(address);
-            return Ok(room.get_draw_deck_size());
+        } else {
+            bail!("room doesn't exist");
         }
 
-        bail!("room with code {} doesn't exist", code);
+        // bail!("room with code {} doesn't exist", code);
+        let message = OutgoingMessage::new(crate::command::Command::JoinRoom)?
+            .set_draw_deck_size(self.get_draw_deck_size(&room_code))
+            .set_room_code(room_code)
+            .set_message("Joined room");
+        self.send_message_to_address(&address, &message)?;
+
+        Ok(())
     }
 
     pub fn broadcast_to_room(&mut self, code: &str, message: &OutgoingMessage) -> Result<()> {
@@ -108,6 +125,16 @@ impl MainState {
             sender.unbounded_send(message_text)?;
         }
 
+        Ok(())
+    }
+
+    pub fn create_game(&mut self, address: SocketAddr) -> Result<()> {
+        let room_code = self.create_room(address)?;
+        let message = OutgoingMessage::new(crate::command::Command::CreateGame)?
+            .set_draw_deck_size(self.get_draw_deck_size(&room_code))
+            .set_room_code(room_code)
+            .set_message("game created - invite others using the code");
+        self.send_message_to_address(&address, &message)?;
         Ok(())
     }
 }
