@@ -2,14 +2,23 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Command {
-    None,
     CreateGame,
     JoinRoom,
     Chat,
     DrawCard,
 }
 
-impl Default for Command {
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum OutgoingEvent {
+    None,
+    CardDrawn,
+    RoomJoined,
+    GameCreated,
+    Chat,
+    DrawCard,
+}
+
+impl Default for OutgoingEvent {
     fn default() -> Self {
         Self::None
     }

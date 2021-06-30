@@ -10,7 +10,7 @@ use futures::channel::mpsc::UnboundedSender;
 use rand::Rng;
 
 use crate::{
-    card::Card,
+    command::OutgoingEvent,
     message::{IncomingMessage, OutgoingMessage},
     room::Room,
 };
@@ -67,7 +67,7 @@ impl MainState {
         }
 
         // bail!("room with code {} doesn't exist", code);
-        let message = OutgoingMessage::new(crate::command::Command::JoinRoom)?
+        let message = OutgoingMessage::new(OutgoingEvent::RoomJoined)?
             .set_draw_deck_size(self.get_draw_deck_size(&room_code))
             .set_room_code(room_code)
             .set_message("Joined room");
@@ -95,34 +95,35 @@ impl MainState {
         self.rooms.get(code).map(|room| room.get_draw_deck_size())
     }
 
-    pub fn handle_draw_card(&mut self, code: &str, address: SocketAddr) -> Option<Card> {
-        if let Some(drawn_card) = self.rooms.get_mut(code).map(|room| room.draw(address)) {
-            drawn_card
-        } else {
-            None
-        }
-    }
-
-    pub fn broadcast_to_everyone_else(
+    pub fn handle_draw_card(
         &mut self,
-        room_code: &str,
-        address: &SocketAddr,
-        message: &OutgoingMessage,
+        incoming_message: IncomingMessage,
+        address: SocketAddr,
     ) -> Result<()> {
-        let room = if let Some(room) = self.rooms.get(room_code) {
-            room
+        let room_code = if let Some(room_code) = incoming_message.room_code {
+            room_code
         } else {
-            bail!("Room {} not found", room_code);
+            let error_message =
+                OutgoingMessage::new(OutgoingEvent::CardDrawn)?.set_error("room code missing");
+            self.send_message_to_address(&address, &error_message)?;
+            return Ok(());
         };
 
-        for room_address in room.get_addresses() {
-            if room_address == address {
-                continue;
-            };
+        if let Some(card) = self
+            .rooms
+            .get_mut(&room_code)
+            .map(|room| room.draw(address))
+        {
+            let outgoing_message = OutgoingMessage::new(OutgoingEvent::DrawCard)?
+                .set_room_code(room_code.clone())
+                .set_card(card);
 
-            let sender = self.clients.get_mut(room_address).unwrap();
-            let message_text = Message::Text(serde_json::to_string(message)?);
-            sender.unbounded_send(message_text)?;
+            self.send_message_to_address(&address, &outgoing_message)?;
+
+            let outgoing_message = OutgoingMessage::new(OutgoingEvent::CardDrawn)?
+                .set_room_code(room_code.clone())
+                .set_draw_deck_size(self.get_draw_deck_size(&room_code));
+            self.broadcast_to_room(&room_code, &outgoing_message)?;
         }
 
         Ok(())
@@ -130,11 +131,37 @@ impl MainState {
 
     pub fn create_game(&mut self, address: SocketAddr) -> Result<()> {
         let room_code = self.create_room(address)?;
-        let message = OutgoingMessage::new(crate::command::Command::CreateGame)?
+        let message = OutgoingMessage::new(OutgoingEvent::GameCreated)?
             .set_draw_deck_size(self.get_draw_deck_size(&room_code))
             .set_room_code(room_code)
             .set_message("game created - invite others using the code");
         self.send_message_to_address(&address, &message)?;
+        Ok(())
+    }
+
+    pub fn handle_chat(
+        &mut self,
+        incoming_message: IncomingMessage,
+        address: SocketAddr,
+    ) -> Result<()> {
+        let room_code = if let Some(code) = incoming_message.room_code {
+            code
+        } else {
+            let error_message =
+                OutgoingMessage::new(OutgoingEvent::Chat)?.set_error("room code missing");
+            self.send_message_to_address(&address, &error_message)?;
+            return Ok(());
+        };
+
+        if let Some(message) = incoming_message.message {
+            let outgoing_message = OutgoingMessage::new(OutgoingEvent::Chat)?.set_message(&message);
+            self.broadcast_to_room(&room_code, &outgoing_message)?;
+        } else {
+            let error_message =
+                OutgoingMessage::new(OutgoingEvent::Chat)?.set_error("message is missing");
+            self.send_message_to_address(&address, &error_message)?;
+        }
+
         Ok(())
     }
 }

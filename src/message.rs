@@ -1,4 +1,7 @@
-use crate::{card::Card, command::Command};
+use crate::{
+    card::Card,
+    command::{Command, OutgoingEvent},
+};
 use eyre::{bail, Result};
 use serde::{Deserialize, Serialize};
 
@@ -17,16 +20,16 @@ pub struct OutgoingMessage {
     chat_message: Option<String>,
     draw_deck_size: Option<u8>,
     card: Option<Card>,
-    command: Command,
+    event: OutgoingEvent,
 }
 
 impl OutgoingMessage {
-    pub fn new(command: Command) -> Result<Self> {
+    pub fn new(event: OutgoingEvent) -> Result<Self> {
         let mut message = Self::default();
-        if command == Command::None {
-            bail!("Command needs to be a real command");
+        if event == OutgoingEvent::None {
+            bail!("OutgoingEvent needs to be a real event");
         }
-        message.command = command;
+        message.event = event;
         Ok(message)
     }
 
@@ -45,23 +48,13 @@ impl OutgoingMessage {
         self
     }
 
-    pub fn set_error(&mut self, error: String) {
-        self.error = Some(error);
+    pub fn set_error(mut self, error: &str) -> Self {
+        self.error = Some(error.to_owned());
+        self
     }
 
-    pub fn set_chat_message(&mut self, message: String) {
-        self.chat_message = Some(message);
-    }
-
-    pub fn set_card(&mut self, card: Card) {
-        self.card = Some(card);
-    }
-
-    pub fn remove_card(&mut self) {
-        self.card = None;
-    }
-
-    pub fn set_command(&mut self, command: Command) {
-        self.command = command;
+    pub fn set_card(mut self, card: Option<Card>) -> Self {
+        self.card = card;
+        self
     }
 }

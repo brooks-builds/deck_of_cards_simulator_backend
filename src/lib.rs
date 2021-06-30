@@ -37,52 +37,11 @@ async fn handle_connection(
             match incoming_message.command {
                 command::Command::CreateGame => state.create_game(address).unwrap(),
                 command::Command::JoinRoom => state.join_room(incoming_message, address).unwrap(),
-                command::Command::Chat => {
-                    // let mut state = main_state.lock().unwrap();
-                    // let mut outgoing_message = OutgoingMessage::default();
-                    // let room_code = &incoming_message.room_code.unwrap();
-                    // outgoing_message.set_room_code(room_code.clone());
-                    // outgoing_message.set_chat_message(incoming_message.message.unwrap());
-                    // if let Some(draw_deck_size) = state.get_draw_deck_size(room_code) {
-                    //     outgoing_message.set_draw_deck_size(draw_deck_size);
-                    // }
-                    // outgoing_message.set_command(incoming_message.command);
-                    // state
-                    //     .broadcast_to_room(room_code, &outgoing_message)
-                    //     .unwrap();
-                }
+                command::Command::Chat => state.handle_chat(incoming_message, address).unwrap(),
                 command::Command::DrawCard => {
-                    //     let mut state = main_state.lock().unwrap();
-                    //     let mut outgoing_message = OutgoingMessage::default();
-                    //     let room_code = &incoming_message.room_code.unwrap();
-                    //     outgoing_message.set_room_code(room_code.clone());
-                    //     outgoing_message.set_command(incoming_message.command);
-                    //     if let Some(drawn_card) = state.handle_draw_card(room_code, address) {
-                    //         outgoing_message.set_card(drawn_card);
-                    //     }
-                    //     if let Some(deck_size) = state.get_draw_deck_size(room_code) {
-                    //         outgoing_message.set_draw_deck_size(deck_size);
-                    //     }
-                    //     state
-                    //         .send_message_to_address(&address, &outgoing_message)
-                    //         .unwrap();
-                    //     let mut broadcast_message = outgoing_message;
-                    //     broadcast_message.remove_card();
-                    //     state
-                    //         .broadcast_to_everyone_else(room_code, &address, &broadcast_message)
-                    //         .unwrap();
+                    state.handle_draw_card(incoming_message, address).unwrap()
                 }
-                command::Command::None => {}
             }
-            // let peers = peer_map.lock().unwrap();
-            // let broadcast_recipients = peers
-            //     .iter()
-            //     .filter(|(peer_address, _)| peer_address != &&address)
-            //     .map(|(_, sender)| sender);
-
-            // for sender in broadcast_recipients {
-            //     sender.unbounded_send(message.clone()).unwrap();
-            // }
 
             future::ok(())
         });
