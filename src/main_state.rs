@@ -129,7 +129,11 @@ impl MainState {
         Ok(())
     }
 
-    pub fn create_game(&mut self, address: SocketAddr) -> Result<()> {
+    pub fn create_game(
+        &mut self,
+        address: SocketAddr,
+        incoming_message: IncomingMessage,
+    ) -> Result<()> {
         let room_code = self.create_room(address)?;
         let message = OutgoingMessage::new(OutgoingEvent::GameCreated)?
             .set_draw_deck_size(self.get_draw_deck_size(&room_code))

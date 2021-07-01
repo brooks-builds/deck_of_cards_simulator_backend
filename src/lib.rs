@@ -14,6 +14,7 @@ mod command;
 mod deck;
 mod main_state;
 mod message;
+mod player;
 mod room;
 
 async fn handle_connection(
@@ -35,7 +36,9 @@ async fn handle_connection(
                 serde_json::from_str(message.to_text().unwrap()).unwrap();
             let mut state = main_state.lock().unwrap();
             match incoming_message.command {
-                command::Command::CreateGame => state.create_game(address).unwrap(),
+                command::Command::CreateGame => {
+                    state.create_game(address, incoming_message).unwrap()
+                }
                 command::Command::JoinRoom => state.join_room(incoming_message, address).unwrap(),
                 command::Command::Chat => state.handle_chat(incoming_message, address).unwrap(),
                 command::Command::DrawCard => {
