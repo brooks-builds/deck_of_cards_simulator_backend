@@ -1,34 +1,35 @@
-use std::net::SocketAddr;
+use eyre::Result;
+use rand::{thread_rng, Rng};
 
-use crate::{card::Card, deck::Deck};
+use crate::{
+    message::{CustomMessage, CustomMessageBuilder},
+    player::Player,
+};
 
 #[derive(Debug)]
 pub struct Room {
-    addresses: Vec<SocketAddr>,
-    deck: Deck,
+    id: u32,
+    players: Vec<Player>,
 }
 
 impl Room {
-    pub fn new(address: SocketAddr) -> Self {
-        Self {
-            addresses: vec![address],
-            deck: Deck::new(),
+    pub fn new(player: Player) -> Result<Self> {
+        let mut rng = thread_rng();
+        let id = rng.gen_range(1000..=9999);
+        let players = vec![player];
+        let mut room = Self { id, players };
+        let message = CustomMessageBuilder::new()
+            .set_action(crate::actions::Action::CreateGame)
+            .set_room_id(id)
+            .build()?;
+        room.broadcast_to_room(message)?;
+        Ok(room)
+    }
+
+    pub fn broadcast_to_room(&mut self, message: CustomMessage) -> Result<()> {
+        for player in &mut self.players {
+            player.send(message.clone())?;
         }
-    }
-
-    pub fn join(&mut self, address: SocketAddr) {
-        self.addresses.push(address);
-    }
-
-    pub fn get_addresses(&self) -> &[SocketAddr] {
-        &self.addresses
-    }
-
-    pub fn get_draw_deck_size(&self) -> u8 {
-        self.deck.get_draw_deck_size()
-    }
-
-    pub fn draw(&mut self, address: SocketAddr) -> Option<Card> {
-        self.deck.draw(address)
+        Ok(())
     }
 }

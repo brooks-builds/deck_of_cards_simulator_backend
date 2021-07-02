@@ -7,11 +7,9 @@ use futures::{channel::mpsc::unbounded, future, pin_mut, StreamExt, TryStreamExt
 use main_state::WrappedMainState;
 use std::net::SocketAddr;
 
-use crate::{main_state::MainState, message::IncomingMessage};
+use crate::main_state::MainState;
 
-mod card;
-mod command;
-mod deck;
+mod actions;
 mod main_state;
 mod message;
 mod player;
@@ -26,25 +24,15 @@ async fn handle_connection(
     let websocket = async_tungstenite::accept_async(raw_stream).await.unwrap();
     println!("websocket connection established: {}", address);
     let (sender, receiver) = unbounded();
-    main_state.lock().unwrap().add_client(address, sender);
+    // main_state.lock().unwrap().add_client(address, sender);
     let (websocket_out, websocket_in) = websocket.split();
     let broadcast_incoming = websocket_in
         .try_filter(|message| future::ready(!message.is_close()))
         .try_for_each(|message| {
-            // received message and now we can handle it
-            let incoming_message: IncomingMessage =
-                serde_json::from_str(message.to_text().unwrap()).unwrap();
             let mut state = main_state.lock().unwrap();
-            match incoming_message.command {
-                command::Command::CreateGame => {
-                    state.create_game(address, incoming_message).unwrap()
-                }
-                command::Command::JoinRoom => state.join_room(incoming_message, address).unwrap(),
-                command::Command::Chat => state.handle_chat(incoming_message, address).unwrap(),
-                command::Command::DrawCard => {
-                    state.handle_draw_card(incoming_message, address).unwrap()
-                }
-            }
+            state
+                .handle_incoming_message(message, sender.clone())
+                .unwrap();
 
             future::ok(())
         });

@@ -1,60 +1,68 @@
-use crate::{
-    card::Card,
-    command::{Command, OutgoingEvent},
-};
+use async_tungstenite::tungstenite::Message;
 use eyre::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct IncomingMessage {
-    pub command: Command,
-    pub room_code: Option<String>,
-    pub message: Option<String>,
+use crate::actions::Action;
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct CustomMessage {
+    pub action: Action,
+    pub data: MessageData,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
-pub struct OutgoingMessage {
-    room_code: Option<String>,
-    error: Option<String>,
-    message: Option<String>,
-    chat_message: Option<String>,
-    draw_deck_size: Option<u8>,
-    card: Option<Card>,
-    event: OutgoingEvent,
+#[allow(clippy::clippy::from_over_into)]
+impl Into<Message> for CustomMessage {
+    fn into(self) -> Message {
+        Message::Text(serde_json::to_string(&self).unwrap())
+    }
 }
 
-impl OutgoingMessage {
-    pub fn new(event: OutgoingEvent) -> Result<Self> {
-        let mut message = Self::default();
-        if event == OutgoingEvent::None {
-            bail!("OutgoingEvent needs to be a real event");
+#[derive(Debug, Deserialize, Serialize, Default, Clone)]
+pub struct MessageData {
+    player_name: Option<String>,
+    room_id: Option<u32>,
+}
+
+impl MessageData {
+    pub fn get_player_name(&self) -> Result<&str> {
+        if let Some(player_name) = &self.player_name {
+            Ok(player_name)
+        } else {
+            bail!("Player name doesn't exist");
         }
-        message.event = event;
-        Ok(message)
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct CustomMessageBuilder {
+    action: Option<Action>,
+    data: MessageData,
+}
+
+impl CustomMessageBuilder {
+    pub fn new() -> Self {
+        Self::default()
     }
 
-    pub fn set_room_code(mut self, code: String) -> Self {
-        self.room_code = Some(code);
+    pub fn set_action(mut self, action: Action) -> Self {
+        self.action = Some(action);
         self
     }
 
-    pub fn set_draw_deck_size(mut self, draw_deck_size: Option<u8>) -> Self {
-        self.draw_deck_size = draw_deck_size;
+    pub fn set_room_id(mut self, room_id: u32) -> Self {
+        self.data.room_id = Some(room_id);
         self
     }
 
-    pub fn set_message(mut self, message: &str) -> Self {
-        self.message = Some(message.to_owned());
-        self
-    }
-
-    pub fn set_error(mut self, error: &str) -> Self {
-        self.error = Some(error.to_owned());
-        self
-    }
-
-    pub fn set_card(mut self, card: Option<Card>) -> Self {
-        self.card = card;
-        self
+    pub fn build(self) -> Result<CustomMessage> {
+        let action = if let Some(action) = self.action {
+            action
+        } else {
+            bail!("Action is not set");
+        };
+        Ok(CustomMessage {
+            action,
+            data: self.data,
+        })
     }
 }
