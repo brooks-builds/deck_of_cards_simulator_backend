@@ -6,7 +6,7 @@ use crate::message::CustomMessage;
 
 #[derive(Debug)]
 pub struct Player {
-    name: String,
+    pub name: String,
     sender: UnboundedSender<Message>,
 }
 

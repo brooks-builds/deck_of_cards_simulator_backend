@@ -31,6 +31,14 @@ impl MessageData {
             bail!("Player name doesn't exist");
         }
     }
+
+    pub fn get_room_id(&self) -> Result<u32> {
+        if let Some(room_id) = self.room_id {
+            Ok(room_id)
+        } else {
+            bail!("Room id doesn't exist");
+        }
+    }
 }
 
 #[derive(Debug, Default)]
@@ -51,6 +59,11 @@ impl CustomMessageBuilder {
 
     pub fn set_room_id(mut self, room_id: u32) -> Self {
         self.data.room_id = Some(room_id);
+        self
+    }
+
+    pub fn set_player_name(mut self, player_name: &str) -> Self {
+        self.data.player_name = Some(player_name.to_owned());
         self
     }
 

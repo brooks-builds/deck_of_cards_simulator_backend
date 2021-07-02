@@ -1,5 +1,5 @@
 - [x] As a player, I want to start a game
-- [ ] As a player, I want to invite other players to join my room
+- [x] As a player, I want to invite other players to join my room
 - [ ] As a player, I want to chat with other players
 - [ ] As a player, I want to see the deck of cards that we can draw from
 - [ ] As a player, I want to draw a card
