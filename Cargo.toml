@@ -14,3 +14,4 @@ async-tungstenite = "0.13.1"
 serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
 rand = "0.8.4"
+uuid = { version = "0.8.2", features = ["v4"] }

@@ -1,5 +1,5 @@
 use crate::{
-    actions::Action::{Chat, CreateGame, JoinRoom},
+    actions::Action::{Chat, CreateGame, DrawCard, DrawDeckUpdated, JoinRoom},
     message::{CustomMessage, CustomMessageBuilder},
     player::Player,
     room::Room,
@@ -33,6 +33,8 @@ impl MainState {
             CreateGame => self.handle_create_game(message, sender)?,
             JoinRoom => self.handle_join_room(message, sender)?,
             Chat => self.handle_chat(message)?,
+            DrawCard => self.handle_draw_card(message)?,
+            DrawDeckUpdated => {}
         }
         Ok(())
     }
@@ -77,6 +79,22 @@ impl MainState {
                 .set_message(message.data.get_message()?)
                 .build()?;
             room.broadcast_to_room(outgoing_message).unwrap();
+        }
+        Ok(())
+    }
+
+    fn handle_draw_card(&mut self, message: CustomMessage) -> Result<()> {
+        if let Some(room) = self
+            .rooms
+            .iter_mut()
+            .find(|room| room.id == message.data.get_room_id().unwrap())
+        {
+            room.draw_card(message.data.get_player_id()?)?;
+            let message = CustomMessageBuilder::new()
+                .set_action(DrawDeckUpdated)
+                .set_draw_deck_size(room.draw_deck.len())
+                .build()?;
+            room.broadcast_to_room(message).unwrap();
         }
         Ok(())
     }

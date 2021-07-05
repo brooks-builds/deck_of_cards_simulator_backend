@@ -5,4 +5,6 @@ pub enum Action {
     CreateGame,
     JoinRoom,
     Chat,
+    DrawCard,
+    DrawDeckUpdated,
 }

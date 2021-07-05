@@ -2,7 +2,7 @@ use async_tungstenite::tungstenite::Message;
 use eyre::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::actions::Action;
+use crate::{actions::Action, card::Card};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CustomMessage {
@@ -23,6 +23,8 @@ pub struct MessageData {
     room_id: Option<u32>,
     message: Option<String>,
     draw_deck_size: Option<usize>,
+    player_id: Option<String>,
+    card: Option<Card>,
 }
 
 impl MessageData {
@@ -47,6 +49,14 @@ impl MessageData {
             Ok(message)
         } else {
             bail!("Message doesn't exist");
+        }
+    }
+
+    pub fn get_player_id(&self) -> Result<&str> {
+        if let Some(player_id) = &self.player_id {
+            Ok(player_id)
+        } else {
+            bail!("Player id doesn't exist");
         }
     }
 }
@@ -84,6 +94,16 @@ impl CustomMessageBuilder {
 
     pub fn set_draw_deck_size(mut self, draw_deck_size: usize) -> Self {
         self.data.draw_deck_size = Some(draw_deck_size);
+        self
+    }
+
+    pub fn set_player_id(mut self, player_id: String) -> Self {
+        self.data.player_id = Some(player_id);
+        self
+    }
+
+    pub fn set_card(mut self, card: Card) -> Self {
+        self.data.card = Some(card);
         self
     }
 

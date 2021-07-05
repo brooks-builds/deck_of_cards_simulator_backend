@@ -1,4 +1,5 @@
 use eyre::Result;
+use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
 
 use crate::{
@@ -12,7 +13,7 @@ use crate::{
 pub struct Room {
     pub id: u32,
     players: Vec<Player>,
-    draw_deck: Vec<Card>,
+    pub draw_deck: Vec<Card>,
 }
 
 impl Room {
@@ -20,6 +21,8 @@ impl Room {
         let player_name = player.name.clone();
         let mut rng = thread_rng();
         let id = rng.gen_range(1000..=9999);
+        let player_id = player.id.clone();
+        dbg!(&player);
         let players = vec![player];
         let draw_deck = vec![];
         let mut room = Self {
@@ -33,6 +36,7 @@ impl Room {
             .set_room_id(id)
             .set_player_name(&player_name)
             .set_draw_deck_size(room.draw_deck.len())
+            .set_player_id(player_id)
             .build()?;
         room.broadcast_to_room(message)?;
         Ok(room)
@@ -45,15 +49,62 @@ impl Room {
         Ok(())
     }
 
-    pub fn join(&mut self, player: Player) -> Result<()> {
+    pub fn broadcast_to_everyone_else(
+        &mut self,
+        message: CustomMessage,
+        player_id: &str,
+    ) -> Result<()> {
+        for player in &mut self.players {
+            if player.id != player_id {
+                player.send(message.clone())?;
+            }
+        }
+        Ok(())
+    }
+
+    pub fn join(&mut self, mut player: Player) -> Result<()> {
         let message = CustomMessageBuilder::new()
             .set_action(JoinRoom)
             .set_room_id(self.id)
             .set_player_name(&player.name)
             .set_draw_deck_size(self.draw_deck.len())
+            .set_player_id(player.id.clone())
             .build()?;
-        self.players.push(player);
-        self.broadcast_to_room(message)?;
+        player.send(message)?;
+        self.players.push(player.clone());
+        let message = CustomMessageBuilder::new()
+            .set_action(crate::actions::Action::JoinRoom)
+            .set_player_name(&player.name)
+            .build()?;
+
+        self.broadcast_to_everyone_else(message, &player.id)?;
+        Ok(())
+    }
+
+    pub fn draw_card(&mut self, player_id: &str) -> Result<()> {
+        let card = if let Some(card) = self.draw_deck.pop() {
+            card
+        } else {
+            return Ok(());
+        };
+
+        let player = if let Some(player) = self
+            .players
+            .iter_mut()
+            .find(|player| player.id == player_id)
+        {
+            player
+        } else {
+            return Ok(());
+        };
+
+        player.add_card(card);
+        let message_to_player = CustomMessageBuilder::new()
+            .set_action(crate::actions::Action::DrawCard)
+            .set_card(card)
+            .set_draw_deck_size(self.draw_deck.len())
+            .build()?;
+        player.send(message_to_player)?;
         Ok(())
     }
 
@@ -67,5 +118,11 @@ impl Room {
                 self.draw_deck.push(card);
             }
         }
+        self.shuffle_draw_deck();
+    }
+
+    fn shuffle_draw_deck(&mut self) {
+        let mut rng = thread_rng();
+        self.draw_deck.shuffle(&mut rng);
     }
 }
