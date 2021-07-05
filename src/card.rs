@@ -1,32 +1,18 @@
 use serde::{Deserialize, Serialize};
-use std::net::SocketAddr;
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
 pub struct Card {
     pub suite: Suite,
     pub value: Value,
-    pub owner: Owner,
 }
 
 impl Card {
-    pub fn new(suite: Suite, value: Value, owner: Owner) -> Self {
-        Self {
-            suite,
-            value,
-            owner,
-        }
-    }
-
-    pub fn is_owned_by(&self, owner: Owner) -> bool {
-        self.owner == owner
-    }
-
-    pub fn change_owner(&mut self, new_owner: Owner) {
-        self.owner = new_owner;
+    pub fn new(suite: Suite, value: Value) -> Self {
+        Self { suite, value }
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone, Copy)]
 pub enum Suite {
     Club,
     Heart,
@@ -34,7 +20,13 @@ pub enum Suite {
     Spade,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone)]
+impl Suite {
+    pub fn all() -> [Suite; 4] {
+        [Self::Club, Self::Heart, Self::Diamond, Self::Spade]
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone, Copy)]
 pub enum Value {
     Ace,
     Two,
@@ -51,9 +43,22 @@ pub enum Value {
     King,
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Clone)]
-pub enum Owner {
-    Draw,
-    Discard,
-    Player(SocketAddr),
+impl Value {
+    pub fn all() -> [Value; 13] {
+        [
+            Self::Ace,
+            Self::Two,
+            Self::Three,
+            Self::Four,
+            Self::Five,
+            Self::Six,
+            Self::Seven,
+            Self::Eight,
+            Self::Nine,
+            Self::Ten,
+            Self::Jack,
+            Self::Queen,
+            Self::King,
+        ]
+    }
 }

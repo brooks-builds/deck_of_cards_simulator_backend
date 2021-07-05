@@ -22,6 +22,7 @@ pub struct MessageData {
     player_name: Option<String>,
     room_id: Option<u32>,
     message: Option<String>,
+    draw_deck_size: Option<usize>,
 }
 
 impl MessageData {
@@ -78,6 +79,11 @@ impl CustomMessageBuilder {
 
     pub fn set_message(mut self, message: &str) -> Self {
         self.data.message = Some(message.to_owned());
+        self
+    }
+
+    pub fn set_draw_deck_size(mut self, draw_deck_size: usize) -> Self {
+        self.data.draw_deck_size = Some(draw_deck_size);
         self
     }
 

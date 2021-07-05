@@ -10,6 +10,7 @@ use std::net::SocketAddr;
 use crate::main_state::MainState;
 
 mod actions;
+mod card;
 mod main_state;
 mod message;
 mod player;

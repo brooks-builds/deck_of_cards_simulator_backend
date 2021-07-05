@@ -1,5 +1,5 @@
 use crate::{
-    actions::Action::{self, Chat, CreateGame, JoinRoom},
+    actions::Action::{Chat, CreateGame, JoinRoom},
     message::{CustomMessage, CustomMessageBuilder},
     player::Player,
     room::Room,
