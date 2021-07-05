@@ -7,4 +7,5 @@ pub enum Action {
     Chat,
     DrawCard,
     DrawDeckUpdated,
+    PlayerJoinedRoomInSession,
 }

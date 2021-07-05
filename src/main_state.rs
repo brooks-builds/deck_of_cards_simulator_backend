@@ -34,7 +34,7 @@ impl MainState {
             JoinRoom => self.handle_join_room(message, sender)?,
             Chat => self.handle_chat(message)?,
             DrawCard => self.handle_draw_card(message)?,
-            DrawDeckUpdated => {}
+            _ => {}
         }
         Ok(())
     }
@@ -93,6 +93,7 @@ impl MainState {
             let message = CustomMessageBuilder::new()
                 .set_action(DrawDeckUpdated)
                 .set_draw_deck_size(room.draw_deck.len())
+                .set_player_id(message.data.get_player_id()?.to_owned())
                 .build()?;
             room.broadcast_to_room(message).unwrap();
         }

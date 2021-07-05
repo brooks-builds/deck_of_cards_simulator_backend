@@ -63,21 +63,22 @@ impl Room {
     }
 
     pub fn join(&mut self, mut player: Player) -> Result<()> {
-        let message = CustomMessageBuilder::new()
+        let message_to_player = CustomMessageBuilder::new()
             .set_action(JoinRoom)
             .set_room_id(self.id)
             .set_player_name(&player.name)
             .set_draw_deck_size(self.draw_deck.len())
             .set_player_id(player.id.clone())
             .build()?;
-        player.send(message)?;
+        player.send(message_to_player)?;
         self.players.push(player.clone());
-        let message = CustomMessageBuilder::new()
-            .set_action(crate::actions::Action::JoinRoom)
+        let message_to_everyone_else = CustomMessageBuilder::new()
+            .set_action(crate::actions::Action::PlayerJoinedRoomInSession)
             .set_player_name(&player.name)
+            .set_player_id(player.id.clone())
             .build()?;
 
-        self.broadcast_to_everyone_else(message, &player.id)?;
+        self.broadcast_to_everyone_else(message_to_everyone_else, &player.id)?;
         Ok(())
     }
 
