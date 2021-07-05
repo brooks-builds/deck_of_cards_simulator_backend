@@ -1,6 +1,6 @@
 use crate::{
-    actions::Action::{CreateGame, JoinRoom},
-    message::CustomMessage,
+    actions::Action::{self, Chat, CreateGame, JoinRoom},
+    message::{CustomMessage, CustomMessageBuilder},
     player::Player,
     room::Room,
 };
@@ -28,10 +28,11 @@ impl MainState {
         sender: UnboundedSender<Message>,
     ) -> Result<()> {
         let message: CustomMessage = serde_json::from_str(raw_message.to_text()?)?;
-        // dbg!(message.clone());
+        dbg!(message.clone());
         match message.action {
             CreateGame => self.handle_create_game(message, sender)?,
             JoinRoom => self.handle_join_room(message, sender)?,
+            Chat => self.handle_chat(message)?,
         }
         Ok(())
     }
@@ -59,6 +60,23 @@ impl MainState {
             .find(|room| room.id == message.data.get_room_id().unwrap())
         {
             room.join(player)?;
+        }
+        Ok(())
+    }
+
+    fn handle_chat(&mut self, message: CustomMessage) -> Result<()> {
+        if let Some(room) = self
+            .rooms
+            .iter_mut()
+            .find(|room| room.id == message.data.get_room_id().unwrap())
+        {
+            let outgoing_message = CustomMessageBuilder::new()
+                .set_action(message.action)
+                .set_player_name(message.data.get_player_name()?)
+                .set_room_id(message.data.get_room_id().unwrap())
+                .set_message(message.data.get_message()?)
+                .build()?;
+            room.broadcast_to_room(outgoing_message).unwrap();
         }
         Ok(())
     }

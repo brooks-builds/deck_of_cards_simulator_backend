@@ -21,6 +21,7 @@ impl Into<Message> for CustomMessage {
 pub struct MessageData {
     player_name: Option<String>,
     room_id: Option<u32>,
+    message: Option<String>,
 }
 
 impl MessageData {
@@ -37,6 +38,14 @@ impl MessageData {
             Ok(room_id)
         } else {
             bail!("Room id doesn't exist");
+        }
+    }
+
+    pub fn get_message(&self) -> Result<&str> {
+        if let Some(message) = &self.message {
+            Ok(message)
+        } else {
+            bail!("Message doesn't exist");
         }
     }
 }
@@ -64,6 +73,11 @@ impl CustomMessageBuilder {
 
     pub fn set_player_name(mut self, player_name: &str) -> Self {
         self.data.player_name = Some(player_name.to_owned());
+        self
+    }
+
+    pub fn set_message(mut self, message: &str) -> Self {
+        self.data.message = Some(message.to_owned());
         self
     }
 
