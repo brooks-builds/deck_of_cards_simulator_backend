@@ -1,5 +1,7 @@
 use crate::{
-    actions::Action::{Chat, CreateGame, DrawCard, DrawDeckUpdated, JoinRoom},
+    actions::Action::{
+        Chat, CreateGame, DrawCard, DrawDeckUpdated, JoinRoom, ToggleVisibilityOfCard,
+    },
     message::{CustomMessage, CustomMessageBuilder},
     player::Player,
     room::Room,
@@ -28,12 +30,12 @@ impl MainState {
         sender: UnboundedSender<Message>,
     ) -> Result<()> {
         let message: CustomMessage = serde_json::from_str(raw_message.to_text()?)?;
-        dbg!(message.clone());
         match message.action {
             CreateGame => self.handle_create_game(message, sender)?,
             JoinRoom => self.handle_join_room(message, sender)?,
             Chat => self.handle_chat(message)?,
             DrawCard => self.handle_draw_card(message)?,
+            ToggleVisibilityOfCard => self.handle_toggle_visibility_of_card(message)?,
             _ => {}
         }
         Ok(())
@@ -97,6 +99,22 @@ impl MainState {
                 .build()?;
             room.broadcast_to_room(message).unwrap();
         }
+        Ok(())
+    }
+
+    fn handle_toggle_visibility_of_card(&mut self, message: CustomMessage) -> Result<()> {
+        if let Some(room) = self
+            .rooms
+            .iter_mut()
+            .find(|room| room.id == message.data.get_room_id().unwrap())
+        {
+            room.toggle_visibility_of_card(
+                message.data.get_player_id()?,
+                message.data.get_card()?,
+            )?;
+        }
+
+        dbg!(self);
         Ok(())
     }
 

@@ -3,8 +3,14 @@
 - [x] As a player, I want to chat with other players
 - [x] As a player, I want to see the deck of cards that we can draw from
 - [x] As a player, I want to draw a card
-- [x] As a player, I want to see my friends hands
 - [ ] As a player, I want to be able to toggle the visibility of my cards
+  - [x] Create a visibility icon
+  - [x] Place visibility icon above each card
+  - [x] Send message to backend when clicking the card in our hand
+  - [x] Update the visibility of the cards in the backend
+  - [ ] Send the new card state to the clients
+  - [ ] Client should set the visibility of the card
+- [] As a player, I want to see my friends hands when I join a game
 - [ ] As a player, I want to discard a card
 - [ ] As a player, I want to collect all the cards and re-shuffle them
 - [ ] As a player, I want to quit the game

@@ -59,6 +59,14 @@ impl MessageData {
             bail!("Player id doesn't exist");
         }
     }
+
+    pub fn get_card(&self) -> Result<&Card> {
+        if let Some(card) = &self.card {
+            Ok(card)
+        } else {
+            bail!("Card doesn't exist");
+        }
+    }
 }
 
 #[derive(Debug, Default)]

@@ -22,7 +22,6 @@ impl Room {
         let mut rng = thread_rng();
         let id = rng.gen_range(1000..=9999);
         let player_id = player.id.clone();
-        dbg!(&player);
         let players = vec![player];
         let draw_deck = vec![];
         let mut room = Self {
@@ -106,6 +105,21 @@ impl Room {
             .set_draw_deck_size(self.draw_deck.len())
             .build()?;
         player.send(message_to_player)?;
+        Ok(())
+    }
+
+    pub fn toggle_visibility_of_card(&mut self, player_id: &str, card: &Card) -> Result<()> {
+        let player = if let Some(player) = self
+            .players
+            .iter_mut()
+            .find(|player| player.id == player_id)
+        {
+            player
+        } else {
+            return Ok(());
+        };
+
+        player.toggle_visibility_of_card(card);
         Ok(())
     }
 

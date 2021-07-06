@@ -4,11 +4,20 @@ use serde::{Deserialize, Serialize};
 pub struct Card {
     pub suite: Suite,
     pub value: Value,
+    visible: bool,
 }
 
 impl Card {
     pub fn new(suite: Suite, value: Value) -> Self {
-        Self { suite, value }
+        Self {
+            suite,
+            value,
+            visible: false,
+        }
+    }
+
+    pub fn toggle_visibility(&mut self) {
+        self.visible = !self.visible;
     }
 }
 
