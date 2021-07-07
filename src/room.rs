@@ -119,7 +119,15 @@ impl Room {
             return Ok(());
         };
 
-        player.toggle_visibility_of_card(card);
+        if let Some(card) = player.toggle_visibility_of_card(card) {
+            let message_to_all_players = CustomMessageBuilder::new()
+                .set_action(crate::actions::Action::ToggleVisibilityOfCard)
+                .set_card(card)
+                .set_player_id(player.id.clone())
+                .build()?;
+            self.broadcast_to_room(message_to_all_players)?;
+        }
+
         Ok(())
     }
 

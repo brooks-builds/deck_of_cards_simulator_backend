@@ -114,7 +114,6 @@ impl MainState {
             )?;
         }
 
-        dbg!(self);
         Ok(())
     }
 

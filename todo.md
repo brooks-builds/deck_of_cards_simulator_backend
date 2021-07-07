@@ -8,7 +8,7 @@
   - [x] Place visibility icon above each card
   - [x] Send message to backend when clicking the card in our hand
   - [x] Update the visibility of the cards in the backend
-  - [ ] Send the new card state to the clients
+  - [x] Send the new card state to the clients
   - [ ] Client should set the visibility of the card
 - [] As a player, I want to see my friends hands when I join a game
 - [ ] As a player, I want to discard a card
