@@ -1,9 +1,12 @@
+use crate::{
+    card::{Card, CardData},
+    message::CustomMessage,
+};
 use async_tungstenite::tungstenite::Message;
 use eyre::Result;
 use futures::channel::mpsc::UnboundedSender;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-
-use crate::{card::Card, message::CustomMessage};
 
 #[derive(Debug, Clone)]
 pub struct Player {
@@ -46,4 +49,19 @@ impl Player {
             None
         }
     }
+
+    pub fn player_data(&self) -> PlayerData {
+        PlayerData {
+            name: self.name.clone(),
+            id: self.id.clone(),
+            hand: self.hand.iter().map(|card| card.card_data()).collect(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PlayerData {
+    name: String,
+    id: String,
+    hand: Vec<CardData>,
 }

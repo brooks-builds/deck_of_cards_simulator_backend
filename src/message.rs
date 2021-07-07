@@ -2,7 +2,7 @@ use async_tungstenite::tungstenite::Message;
 use eyre::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::{actions::Action, card::Card};
+use crate::{actions::Action, card::Card, player::PlayerData};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CustomMessage {
@@ -25,6 +25,7 @@ pub struct MessageData {
     draw_deck_size: Option<usize>,
     player_id: Option<String>,
     card: Option<Card>,
+    other_players: Option<Vec<PlayerData>>,
 }
 
 impl MessageData {
@@ -112,6 +113,11 @@ impl CustomMessageBuilder {
 
     pub fn set_card(mut self, card: Card) -> Self {
         self.data.card = Some(card);
+        self
+    }
+
+    pub fn set_other_players(mut self, other_players: Vec<PlayerData>) -> Self {
+        self.data.other_players = Some(other_players);
         self
     }
 

@@ -2,6 +2,7 @@ use eyre::Result;
 use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
 
+use crate::player::PlayerData;
 use crate::{
     actions::Action::JoinRoom,
     card::{Card, Suite, Value},
@@ -62,12 +63,18 @@ impl Room {
     }
 
     pub fn join(&mut self, mut player: Player) -> Result<()> {
+        let other_players: Vec<PlayerData> = self
+            .players
+            .iter()
+            .map(|player| player.player_data())
+            .collect();
         let message_to_player = CustomMessageBuilder::new()
             .set_action(JoinRoom)
             .set_room_id(self.id)
             .set_player_name(&player.name)
             .set_draw_deck_size(self.draw_deck.len())
             .set_player_id(player.id.clone())
+            .set_other_players(other_players)
             .build()?;
         player.send(message_to_player)?;
         self.players.push(player.clone());

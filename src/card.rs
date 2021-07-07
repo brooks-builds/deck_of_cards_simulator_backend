@@ -19,6 +19,22 @@ impl Card {
     pub fn toggle_visibility(&mut self) {
         self.visible = !self.visible;
     }
+
+    pub fn card_data(&self) -> CardData {
+        if self.visible {
+            CardData {
+                suite: Some(self.suite),
+                value: Some(self.value),
+                visible: true,
+            }
+        } else {
+            CardData {
+                suite: None,
+                value: None,
+                visible: false,
+            }
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone, Copy)]
@@ -70,4 +86,11 @@ impl Value {
             Self::King,
         ]
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CardData {
+    pub suite: Option<Suite>,
+    pub value: Option<Value>,
+    pub visible: bool,
 }
