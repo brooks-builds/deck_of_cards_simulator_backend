@@ -1,6 +1,6 @@
 use crate::{
     actions::Action::{
-        Chat, CreateGame, DrawCard, DrawDeckUpdated, JoinRoom, ToggleVisibilityOfCard,
+        Chat, CreateGame, DiscardCard, DrawCard, DrawDeckUpdated, JoinRoom, ToggleVisibilityOfCard,
     },
     message::{CustomMessage, CustomMessageBuilder},
     player::Player,
@@ -36,6 +36,7 @@ impl MainState {
             Chat => self.handle_chat(message)?,
             DrawCard => self.handle_draw_card(message)?,
             ToggleVisibilityOfCard => self.handle_toggle_visibility_of_card(message)?,
+            DiscardCard => self.handle_discard_card(message)?,
             _ => {}
         }
         Ok(())
@@ -120,6 +121,17 @@ impl MainState {
     fn create_room(&mut self, player: Player) -> Result<()> {
         let room = Room::new(player)?;
         self.rooms.push(room);
+        Ok(())
+    }
+
+    fn handle_discard_card(&mut self, message: CustomMessage) -> Result<()> {
+        if let Some(room) = self
+            .rooms
+            .iter_mut()
+            .find(|room| room.id == message.data.get_room_id().unwrap())
+        {
+            room.discard_card(message.data.get_player_id()?, message.data.get_card()?)?;
+        }
         Ok(())
     }
 }

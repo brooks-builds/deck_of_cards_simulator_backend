@@ -1,6 +1,7 @@
 use crate::{
+    actions::Action,
     card::{Card, CardData},
-    message::CustomMessage,
+    message::{CustomMessage, CustomMessageBuilder},
 };
 use async_tungstenite::tungstenite::Message;
 use eyre::Result;
@@ -56,6 +57,14 @@ impl Player {
             id: self.id.clone(),
             hand: self.hand.iter().map(|card| card.card_data()).collect(),
         }
+    }
+
+    pub fn discard_card(&mut self, message_card: &Card) -> Option<Card> {
+        let (index, _) = self.hand.iter().enumerate().find(|(_, card)| {
+            card.suite == message_card.suite && card.value == message_card.value
+        })?;
+        let card = self.hand.remove(index);
+        Some(card)
     }
 }
 

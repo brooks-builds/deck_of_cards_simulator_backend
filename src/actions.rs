@@ -9,4 +9,5 @@ pub enum Action {
     DrawDeckUpdated,
     PlayerJoinedRoomInSession,
     ToggleVisibilityOfCard,
+    DiscardCard,
 }

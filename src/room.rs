@@ -138,6 +138,27 @@ impl Room {
         Ok(())
     }
 
+    pub fn discard_card(&mut self, player_id: &str, card: &Card) -> Result<()> {
+        let player = if let Some(player) = self
+            .players
+            .iter_mut()
+            .find(|player| player.id == player_id)
+        {
+            player
+        } else {
+            return Ok(());
+        };
+        if let Some(discarded_card) = player.discard_card(card) {
+            let message_to_all_players = CustomMessageBuilder::new()
+                .set_action(crate::actions::Action::DiscardCard)
+                .set_card(discarded_card)
+                .set_player_id(player.id.clone())
+                .build()?;
+            self.broadcast_to_room(message_to_all_players)?;
+        }
+        Ok(())
+    }
+
     fn reset_draw_deck(&mut self) {
         self.draw_deck.clear();
         // let ten_of_hearts = Card::new(crate::card::Suite::Heart, crate::card::Value::Ten);
