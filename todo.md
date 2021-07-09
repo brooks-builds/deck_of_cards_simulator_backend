@@ -13,13 +13,17 @@
 - [x] As a player, I want to see my friends hands when I join a game
   - [x] Send other players' hands to the client when they join a game
   - [x] Add other players hands to the client when we join a game
-- [ ] As a player, I want to discard a card
+- [x] As a player, I want to discard a card
   - [x] Display discard icon below the card
   - [x] Send discard message to backend
-  - [ ] Remove the card from the players hand in the backend
-  - [ ] Add the card to the discard pile in the backend
-  - [ ] Send the new discard state to the clients
-  - [ ] Client should set the discard state of the card
+  - [x] Remove the card from the players hand in the backend
+  - [x] Add the card to the discard pile in the backend
+  - [x] Send the new discard state to the clients
+  - [x] Client should set the discard state of the card
 - [ ] As a player, I want to collect all the cards and re-shuffle them
 - [ ] As a player, I want to quit the game
 - [ ] Fix the linting problems with cr
+
+## Potential Changes
+
+- [ ] Add a feature to discard cards but nobody else can see it

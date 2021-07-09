@@ -26,6 +26,7 @@ pub struct MessageData {
     player_id: Option<String>,
     card: Option<Card>,
     other_players: Option<Vec<PlayerData>>,
+    discard_pile: Option<Vec<Card>>,
 }
 
 impl MessageData {
@@ -118,6 +119,11 @@ impl CustomMessageBuilder {
 
     pub fn set_other_players(mut self, other_players: Vec<PlayerData>) -> Self {
         self.data.other_players = Some(other_players);
+        self
+    }
+
+    pub fn set_discard_pile(mut self, discard_pile: Vec<Card>) -> Self {
+        self.data.discard_pile = Some(discard_pile);
         self
     }
 

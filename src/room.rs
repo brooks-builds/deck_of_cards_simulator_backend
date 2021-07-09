@@ -15,6 +15,7 @@ pub struct Room {
     pub id: u32,
     players: Vec<Player>,
     pub draw_deck: Vec<Card>,
+    pub discard_deck: Vec<Card>,
 }
 
 impl Room {
@@ -25,10 +26,12 @@ impl Room {
         let player_id = player.id.clone();
         let players = vec![player];
         let draw_deck = vec![];
+        let discard_deck = vec![];
         let mut room = Self {
             id,
             players,
             draw_deck,
+            discard_deck,
         };
         room.reset_draw_deck();
         let message = CustomMessageBuilder::new()
@@ -75,6 +78,7 @@ impl Room {
             .set_draw_deck_size(self.draw_deck.len())
             .set_player_id(player.id.clone())
             .set_other_players(other_players)
+            .set_discard_pile(self.discard_deck.clone())
             .build()?;
         player.send(message_to_player)?;
         self.players.push(player.clone());
@@ -149,6 +153,7 @@ impl Room {
             return Ok(());
         };
         if let Some(discarded_card) = player.discard_card(card) {
+            self.discard_deck.push(discarded_card);
             let message_to_all_players = CustomMessageBuilder::new()
                 .set_action(crate::actions::Action::DiscardCard)
                 .set_card(discarded_card)
