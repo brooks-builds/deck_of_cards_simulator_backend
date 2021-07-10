@@ -23,6 +23,9 @@
 - [ ] As a player, I want to collect all the cards and re-shuffle them
 - [ ] As a player, I want to quit the game
 - [ ] Fix the linting problems with cr
+- [ ] Deploy app
+  - [ ] deploy server
+  - [ ] deploy frontend
 
 ## Potential Changes
 
