@@ -29,10 +29,12 @@
   - [x] Send the new game state to the clients
   - [x] Clients update their game state
   - [x] Player who quit should go back to the main menu
-- [ ] Fix the linting problems with cr
-- [ ] Fix up styling for 100% zoom
-- [ ] Fix bugs
-  - [ ] When a player discards a card, 2 cards are sometimes discarded
+- [x] Fix the linting problems with cr
+- [x] Fix up styling for 100% zoom
+- [x] Fix bugs
+  - [x] When a player discards a card, 2 cards are sometimes discarded
+- [ ] Add in metric gatherer (google analytics)
+- [ ] Add in something like sentry for error logging
 - [ ] Deploy app
   - [ ] deploy server
   - [ ] deploy frontend

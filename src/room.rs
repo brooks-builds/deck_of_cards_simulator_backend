@@ -158,6 +158,7 @@ impl Room {
                 .set_action(crate::actions::Action::DiscardCard)
                 .set_card(discarded_card)
                 .set_player_id(player.id.clone())
+                .set_hand(player.hand.clone())
                 .build()?;
             self.broadcast_to_room(message_to_all_players)?;
         }

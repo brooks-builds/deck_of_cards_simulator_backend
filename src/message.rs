@@ -2,7 +2,11 @@ use async_tungstenite::tungstenite::Message;
 use eyre::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::{actions::Action, card::Card, player::PlayerData};
+use crate::{
+    actions::Action,
+    card::{Card, CardData},
+    player::PlayerData,
+};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct CustomMessage {
@@ -27,6 +31,7 @@ pub struct MessageData {
     card: Option<Card>,
     other_players: Option<Vec<PlayerData>>,
     discard_pile: Option<Vec<Card>>,
+    hand: Option<Vec<CardData>>,
 }
 
 impl MessageData {
@@ -124,6 +129,13 @@ impl CustomMessageBuilder {
 
     pub fn set_discard_pile(mut self, discard_pile: Vec<Card>) -> Self {
         self.data.discard_pile = Some(discard_pile);
+        self
+    }
+
+    pub fn set_hand(mut self, hand: Vec<Card>) -> Self {
+        let sanitized_hand = hand.iter().map(|card| card.card_data()).collect();
+        self.data.hand = Some(sanitized_hand);
+
         self
     }
 
