@@ -1,6 +1,6 @@
 use crate::{
     actions::Action::{
-        Chat, CreateGame, DiscardCard, DrawCard, DrawDeckUpdated, JoinRoom, ResetDeck,
+        Chat, CreateGame, DiscardCard, DrawCard, DrawDeckUpdated, JoinRoom, Quit, ResetDeck,
         ToggleVisibilityOfCard,
     },
     message::{CustomMessage, CustomMessageBuilder},
@@ -39,6 +39,7 @@ impl MainState {
             ToggleVisibilityOfCard => self.handle_toggle_visibility_of_card(message)?,
             DiscardCard => self.handle_discard_card(message)?,
             ResetDeck => self.handle_reset_deck(message)?,
+            Quit => self.handle_quit(message)?,
             _ => {}
         }
         Ok(())
@@ -144,6 +145,17 @@ impl MainState {
             .find(|room| room.id == message.data.get_room_id().unwrap())
         {
             room.reset_deck()?;
+        }
+        Ok(())
+    }
+
+    fn handle_quit(&mut self, message: CustomMessage) -> Result<()> {
+        if let Some(room) = self
+            .rooms
+            .iter_mut()
+            .find(|room| room.id == message.data.get_room_id().unwrap())
+        {
+            room.remove_player_by_id(message.data.get_player_id()?)?;
         }
         Ok(())
     }

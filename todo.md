@@ -21,7 +21,14 @@
   - [x] Send the new discard state to the clients
   - [x] Client should set the discard state of the card
 - [x] As a player, I want to collect all the cards and re-shuffle them
-- [ ] As a player, I want to quit the game
+- [x] As a player, I want to quit the game
+  - [x] Create Quit game button
+  - [x] Wire it up to the store
+  - [x] Send quit message to backend
+  - [x] Remove the player from the game in the backend
+  - [x] Send the new game state to the clients
+  - [x] Clients update their game state
+  - [x] Player who quit should go back to the main menu
 - [ ] Fix the linting problems with cr
 - [ ] Fix up styling for 100% zoom
 - [ ] Fix bugs

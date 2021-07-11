@@ -198,4 +198,31 @@ impl Room {
         let mut rng = thread_rng();
         self.draw_deck.shuffle(&mut rng);
     }
+
+    pub fn remove_player_by_id(&mut self, player_id: &str) -> Result<()> {
+        let mut player_index = None;
+        let mut player_name = None;
+        for (index, player) in self.players.iter_mut().enumerate() {
+            if player.id != player_id {
+                continue;
+            }
+
+            player_index = Some(index);
+            self.discard_deck.append(&mut player.hand);
+            break;
+        }
+        if let Some(player_index) = player_index {
+            player_name = Some(self.players[player_index].name.clone());
+            self.players.remove(player_index);
+        }
+        let text_message = format!("{} left the room", player_name.unwrap());
+        let message_to_all_players = CustomMessageBuilder::new()
+            .set_action(crate::actions::Action::Quit)
+            .set_player_id(player_id.to_owned())
+            .set_discard_pile(self.discard_deck.clone())
+            .set_message(&text_message)
+            .build()?;
+        self.broadcast_to_room(message_to_all_players)?;
+        Ok(())
+    }
 }

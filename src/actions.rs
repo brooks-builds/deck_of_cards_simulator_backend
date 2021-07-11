@@ -11,4 +11,5 @@ pub enum Action {
     ToggleVisibilityOfCard,
     DiscardCard,
     ResetDeck,
+    Quit,
 }

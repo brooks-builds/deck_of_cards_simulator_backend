@@ -13,7 +13,7 @@ pub struct Player {
     pub name: String,
     sender: UnboundedSender<Message>,
     pub id: String,
-    hand: Vec<Card>,
+    pub hand: Vec<Card>,
 }
 
 impl Player {
