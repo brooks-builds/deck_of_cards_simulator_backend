@@ -65,6 +65,10 @@ impl Player {
         let card = self.hand.remove(index);
         Some(card)
     }
+
+    pub fn empty_hand(&mut self) {
+        self.hand.clear();
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

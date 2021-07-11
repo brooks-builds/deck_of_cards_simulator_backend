@@ -164,6 +164,23 @@ impl Room {
         Ok(())
     }
 
+    pub fn reset_deck(&mut self) -> Result<()> {
+        self.reset_draw_deck();
+        self.shuffle_draw_deck();
+        self.discard_deck.clear();
+        for player in &mut self.players {
+            player.empty_hand();
+        }
+        let message_to_all_players = CustomMessageBuilder::new()
+            .set_action(crate::actions::Action::ResetDeck)
+            .set_discard_pile(vec![])
+            .set_draw_deck_size(self.draw_deck.len())
+            .set_message("Deck reset and shuffled")
+            .build()?;
+        self.broadcast_to_room(message_to_all_players)?;
+        Ok(())
+    }
+
     fn reset_draw_deck(&mut self) {
         self.draw_deck.clear();
         // let ten_of_hearts = Card::new(crate::card::Suite::Heart, crate::card::Value::Ten);

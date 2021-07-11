@@ -10,4 +10,5 @@ pub enum Action {
     PlayerJoinedRoomInSession,
     ToggleVisibilityOfCard,
     DiscardCard,
+    ResetDeck,
 }

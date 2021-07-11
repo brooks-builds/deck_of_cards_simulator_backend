@@ -20,9 +20,12 @@
   - [x] Add the card to the discard pile in the backend
   - [x] Send the new discard state to the clients
   - [x] Client should set the discard state of the card
-- [ ] As a player, I want to collect all the cards and re-shuffle them
+- [x] As a player, I want to collect all the cards and re-shuffle them
 - [ ] As a player, I want to quit the game
 - [ ] Fix the linting problems with cr
+- [ ] Fix up styling for 100% zoom
+- [ ] Fix bugs
+  - [ ] When a player discards a card, 2 cards are sometimes discarded
 - [ ] Deploy app
   - [ ] deploy server
   - [ ] deploy frontend
